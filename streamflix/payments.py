@@ -1,4 +1,3 @@
-
 from abc import ABC, abstractmethod
 
 
@@ -16,6 +15,7 @@ class PaymentProcessor(ABC):
 # --- Third-party SDKs (given, do not modify) --------------------------------
 # These are stand-ins for real vendor libraries: their interfaces don't match
 # `PaymentProcessor`, and we can't change them.
+
 
 class StripeAPI:
     """Fake Stripe SDK. Works in integer cents and needs a merchant id."""
@@ -43,23 +43,28 @@ class PayPalClient:
 
 # --- Adapters (implement these) ---------------------------------------------
 
+
 class StripeAdapter(PaymentProcessor):
     def __init__(self, stripe: StripeAPI):
-      # TODO: store the wrapped StripeAPI instance
-      pass
+        self._stripe = stripe
 
     def pay(self, amount: float) -> str:
-      # TODO: convert `amount` (EUR) to integer cents, call self._stripe.charge_cents,
-      # and return "paid {amount:.2f} EUR via stripe ({merchant_id})"
-      pass
+        cents = int(round(amount * 100))
+        self._stripe.charge_cents(cents)
+        return f"paid {amount:.2f} EUR via stripe ({self._stripe.merchant_id})"
+        # TODO: convert `amount` (EUR) to integer cents, call self._stripe.charge_cents,
+        # and return "paid {amount:.2f} EUR via stripe ({merchant_id})"
+        pass
 
 
 class PayPalAdapter(PaymentProcessor):
     def __init__(self, paypal: PayPalClient):
-      # TODO: store the wrapped PayPalClient instance
-      pass
+        self._paypal = paypal
 
     def pay(self, amount: float) -> str:
-      # TODO: call self._paypal.send_payment with amount formatted to 2 decimals and
-      # currency "EUR", and return "paid {amount:.2f} EUR via paypal ({account_email})"
-      pass
+        amount_str = f"{amount:.2f}"
+        self._paypal.send_payment(amount_str, "EUR")
+        return f"paid {amount:.2f} EUR via paypal ({self._paypal.account_email})"
+        # TODO: call self._paypal.send_payment with amount formatted to 2 decimals and
+        # currency "EUR", and return "paid {amount:.2f} EUR via paypal ({account_email})"
+        pass
